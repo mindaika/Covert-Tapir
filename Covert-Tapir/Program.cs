@@ -19,9 +19,9 @@ namespace Covert_Tapir
         }
     }
 
-    abstract class ConvexHull
+    public class ConvexHull
     {
-        protected int JarvisMarch
+        public int JarvisMarch
         {
             get { return 0; }
         }

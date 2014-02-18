@@ -6,27 +6,41 @@ using System.Threading.Tasks;
 
 namespace Covert_Tapir
 {
-    class TestConvexHull : ConvexHull
-    {
-
-
-        static void Main(string[] args)
-        {
-            System.Console.WriteLine("Test");
-            TestConvexHull testicle = new TestConvexHull();
-            System.Console.WriteLine( testicle.JarvisMarch );
-            System.Console.ReadLine();
-        }
-    }
 
     public class ConvexHull
     {
+        public struct Point
+        {
+            public double x, y;
+            // Constructor:
+            public Point(double x, double y)
+            {
+                this.x = x;
+                this.y = y;
+            }
+            // Override the ToString method:
+            public override string ToString()
+            {
+                return (String.Format("({0}, {1})", x, y));
+            }
+        }
+      
+        static void Main(string[] args)
+        {   Point one = new Point(-16, 21.445);
+            Point two = new Point();
+            System.Console.WriteLine(one.ToString());
+            System.Console.WriteLine(two.ToString());
+            ConvexHull testicle = new ConvexHull();
+            System.Console.WriteLine( testicle.JarvisMarch );
+            System.Console.ReadLine();
+        }
+
         public int JarvisMarch
         {
             get { return 0; }
         }
 
-        protected int GrahamScan
+        public int GrahamScan
         {
             get { return 0; }
         }
@@ -60,6 +74,5 @@ namespace Covert_Tapir
         {
             get { return 0; }
         }
-
     }
 }

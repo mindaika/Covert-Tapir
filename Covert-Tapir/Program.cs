@@ -24,6 +24,11 @@ namespace Covert_Tapir
                 return (String.Format("({0}, {1})", x, y));
             }
         }
+
+        private bool isLeft(Point a, Point b, Point c)
+        {
+            return ((b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x)) > 0;
+        }
       
         static void Main(string[] args)
         {   
@@ -31,8 +36,10 @@ namespace Covert_Tapir
             Random rand = new Random();
             for (int i = 0; i < 100; i++)
             {
-                double _xval = rand.NextDouble() * (100 - (-100)) + (-100);
-                double _yval = rand.NextDouble() * (100 - (-100)) + (-100);
+                int _xval = rand.Next(-1000, 1000);
+                int _yval = rand.Next(-1000, 1000);
+                //double _xval = rand.NextDouble() * (100 - (-100)) + (-100);
+                //double _yval = rand.NextDouble() * (100 - (-100)) + (-100);
                 Point randomPoint = new Point(_xval, _yval);
                 dataSet.Add(randomPoint);
             }
@@ -45,7 +52,11 @@ namespace Covert_Tapir
             
             // Primary test section
             ConvexHull testicle = new ConvexHull();
-            System.Console.WriteLine( testicle.JarvisMarch(dataSet) );
+            List<Point> test = testicle.JarvisMarch(dataSet);
+            foreach (Point p in test)
+            {
+                System.Console.WriteLine(p);
+            }
             System.Console.ReadLine();
         }
 
@@ -66,6 +77,25 @@ namespace Covert_Tapir
             System.Console.WriteLine("Point was" + dataSet[leftmostIndex]);
 
             // Perform Jarvis' march
+            int i = 0;
+            Point endpoint;
+            Point pointOnHull = dataSet[leftmostIndex];            
+            do
+            {
+                pointsOnHull.Add(pointOnHull);
+                endpoint = dataSet[0];
+                for (int j = 1; j < dataSet.Count; j++)
+                {
+                    if (endpoint.Equals(pointOnHull) || 
+                        isLeft(pointsOnHull[i], endpoint, dataSet[j]))
+                    {
+                        endpoint = dataSet[j];
+                    }
+                }
+                i++;
+                pointOnHull = endpoint;
+            } while (!endpoint.Equals(pointsOnHull[0]));
+
             return pointsOnHull;
         }
 

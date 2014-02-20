@@ -26,18 +26,47 @@ namespace Covert_Tapir
         }
       
         static void Main(string[] args)
-        {   Point one = new Point(-16, 21.445);
-            Point two = new Point();
-            System.Console.WriteLine(one.ToString());
-            System.Console.WriteLine(two.ToString());
+        {   
+            List<Point> dataSet = new List<Point>();
+            Random rand = new Random();
+            for (int i = 0; i < 100; i++)
+            {
+                double _xval = rand.NextDouble() * (100 - (-100)) + (-100);
+                double _yval = rand.NextDouble() * (100 - (-100)) + (-100);
+                Point randomPoint = new Point(_xval, _yval);
+                dataSet.Add(randomPoint);
+            }
+            /*
+             * Just here for testing the random data generator works.
+            foreach (Point p in dataSet) {
+                System.Console.WriteLine(p);
+            }
+             */
+            
+            // Primary test section
             ConvexHull testicle = new ConvexHull();
-            System.Console.WriteLine( testicle.UCPH );
+            System.Console.WriteLine( testicle.JarvisMarch(dataSet) );
             System.Console.ReadLine();
         }
 
         public List<Point> JarvisMarch(List<Point> dataSet)
         {
-            return dataSet;
+            // Setup
+            List<Point> pointsOnHull = new List<Point>(); 
+
+            // Find leftmost point
+            int leftmostIndex = 0;
+            foreach (Point p in dataSet)
+            {
+                if (p.x < dataSet[leftmostIndex].x) {
+                    leftmostIndex = dataSet.IndexOf(p);
+                }
+            }
+            System.Console.WriteLine("Index was " + leftmostIndex);
+            System.Console.WriteLine("Point was" + dataSet[leftmostIndex]);
+
+            // Perform Jarvis' march
+            return pointsOnHull;
         }
 
         public int GrahamScan

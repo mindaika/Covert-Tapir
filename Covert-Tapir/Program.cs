@@ -31,13 +31,13 @@ namespace Covert_Tapir
             System.Console.WriteLine(one.ToString());
             System.Console.WriteLine(two.ToString());
             ConvexHull testicle = new ConvexHull();
-            System.Console.WriteLine( testicle.JarvisMarch );
+            System.Console.WriteLine( testicle.UCPH );
             System.Console.ReadLine();
         }
 
-        public int JarvisMarch
+        public List<Point> JarvisMarch(List<Point> dataSet)
         {
-            get { return 0; }
+            return dataSet;
         }
 
         public int GrahamScan
@@ -45,32 +45,32 @@ namespace Covert_Tapir
             get { return 0; }
         }
 
-        protected int QuickHull
+        public int QuickHull
         {
             get { return 0; }
         }
 
-        protected int DivideAndConquer
+        public int DivideAndConquer
         {
             get { return 0; }
         }
 
-        protected int MonotoneChain
+        public int MonotoneChain
         {
             get { return 0; }
         }
 
-        protected int Incremental
+        public int Incremental
         {
             get { return 0; }
         }
 
-        protected int ICPH
+        public int UCPH
         {
             get { return 0; }
         }
 
-        protected int ChansAlgorithm
+        public int ChansAlgorithm
         {
             get { return 0; }
         }

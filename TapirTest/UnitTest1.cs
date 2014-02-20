@@ -11,17 +11,49 @@ namespace Covert_Tapir
         [TestMethod]
         public void JarvisMarchTest()
         {
-            int x = 0;            
-            int y = testHull.JarvisMarch;
-            Assert.AreEqual(x, y);
+            Assert.IsNull(testHull.JarvisMarch(null));
         }
 
         [TestMethod]
         public void GrahamScanTest()
         {
-            int x = 0;
-            int y = testHull.GrahamScan;
-            Assert.AreEqual(x, y);
+            Assert.AreEqual(0, testHull.GrahamScan);
+        }
+
+        [TestMethod]
+        public void QuickHullTest()
+        {
+            Assert.AreEqual(0, testHull.QuickHull);
+        }
+
+        [TestMethod]
+        public void UCPHTest()
+        {
+            Assert.AreEqual(0, testHull.UCPH);
+        }
+
+        [TestMethod]
+        public void IncrementalTest()
+        {
+            Assert.AreEqual(0, testHull.Incremental);
+        }
+
+        [TestMethod]
+        public void MonotoneChainTest()
+        {
+            Assert.AreEqual(0, testHull.MonotoneChain);
+        }
+
+        [TestMethod]
+        public void ChansAlgorithmTest()
+        {
+            Assert.AreEqual(0, testHull.ChansAlgorithm);
+        }
+
+        [TestMethod]
+        public void DivideAndConquer()
+        {
+            Assert.AreEqual(0, testHull.DivideAndConquer);
         }
     }
 }

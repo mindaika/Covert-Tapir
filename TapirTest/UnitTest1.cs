@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using System.Drawing;
 
 namespace Covert_Tapir
 {
@@ -11,13 +12,13 @@ namespace Covert_Tapir
         [TestMethod]
         public void JarvisMarchTest()
         {
-            Assert.IsNull(testHull.JarvisMarch(null));
+            Assert.IsNotNull(testHull.JarvisMarch(null));
         }
 
         [TestMethod]
         public void GrahamScanTest()
         {
-            Assert.AreEqual(0, testHull.GrahamScan);
+            Assert.IsNotNull(testHull.GrahamScan(null));
         }
 
         [TestMethod]

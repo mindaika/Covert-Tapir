@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using System.ComponentModel;
 using System.Data;
 using System.Drawing;
-//using System.Windows.Forms;
+using System.Diagnostics;
 
 namespace Covert_Tapir
 {
@@ -17,7 +17,8 @@ namespace Covert_Tapir
         {   
             List<Point> dataSet = new List<Point>();
             Random rand = new Random();
-            int pointsInSet = rand.Next(3, 10);
+            int pointsInSet = rand.Next(50000, 1000000);
+            var watch = Stopwatch.StartNew();
             for (int i = 0; i < pointsInSet; i++)
             {
                 int _xval = rand.Next(-1000, 1000);
@@ -25,54 +26,40 @@ namespace Covert_Tapir
                 Point randomPoint = new Point(_xval, _yval);
                 dataSet.Add(randomPoint);
             }
+            watch.Stop();
             
             // Primary test section
             ConvexHull testicle = new ConvexHull();
+            var watchJarvis = Stopwatch.StartNew();
             List<Point> testJarvis = testicle.JarvisMarch(dataSet);
-            System.Console.WriteLine("Behold, the wonder of the JARVIS MARCH!");
-            foreach (Point p in testJarvis)
-            {
-                System.Console.WriteLine(p);
-            }
+            watchJarvis.Stop();
 
-            System.Console.WriteLine("Feast your eyes on the astounding GRAHAM SCAN!");
+                       
+            var grahamWatch = Stopwatch.StartNew();
             List<Point> testGraham = testicle.GrahamScan(dataSet);
-            foreach (Point p in testGraham)
-            {
-                System.Console.WriteLine(p);
-            }
+            grahamWatch.Stop();
 
-            System.Console.ReadLine();
+            System.Console.WriteLine(watch.ElapsedMilliseconds + "ms to run point generation of " + pointsInSet + " points");
+            System.Console.WriteLine(watchJarvis.ElapsedMilliseconds + "ms to run Jarvis");
+            System.Console.WriteLine(grahamWatch.ElapsedMilliseconds + "ms to run Graham");
+            System.Console.ReadLine();            
         }
 
         public List<Point> JarvisMarch(List<Point> dataSet)
         {
             // Setup
             List<Point> pointsOnHull = new List<Point>();
-                  
-            // Find leftmost point
-            int leftmostIndex = 0;
-            try
+            bool tinyHull = false;
+            if (dataSet == null || (dataSet.Count() <= 3) )
             {
-                foreach (Point p in dataSet)
-                {
-                    if (p.X < dataSet[leftmostIndex].X)
-                    {
-                        leftmostIndex = dataSet.IndexOf(p);
-                    }
-                }
-                // Debug info; remove
-                //System.Console.WriteLine("Index was " + leftmostIndex);
-                //System.Console.WriteLine("Point was" + dataSet[leftmostIndex]);
+                tinyHull = true;
             }
-            catch (NullReferenceException e)
+            if (!tinyHull)
             {
-                e.GetBaseException();
-            }
-            
-            // Perform Jarvis' march
-            try
-            {
+                // Find leftmost point
+                int leftmostIndex = getWesternPoint(dataSet);
+
+                // Perform Jarvis' march                
                 int i = 0;
                 Point endpoint;
                 Point pointOnHull = dataSet[leftmostIndex];
@@ -90,11 +77,7 @@ namespace Covert_Tapir
                     }
                     i++;
                     pointOnHull = endpoint;
-                } while (!endpoint.Equals(pointsOnHull[0]));
-            }
-            catch (NullReferenceException e)
-            {
-                e.GetBaseException();
+                } while (!endpoint.Equals(pointsOnHull[0]));            
             }
             return pointsOnHull;
         }
@@ -102,81 +85,63 @@ namespace Covert_Tapir
         public List<Point> GrahamScan(List<Point> dataSet)
         {
             // Setup
-            Stack<Point> hull = new Stack<Point>();
-            List<Point> points = new List<Point>(dataSet); // This may be redundant, if C# passes by value
-            int N = dataSet.Count;
-            bool allPointsEqual = false;
-            
-            // Find y-most point
-            int yMostIndex = 0;
-            try
-            {
-                foreach (Point p in points)
-                {
-                    if (p.Y < points[yMostIndex].Y)
-                    {
-                        yMostIndex = points.IndexOf(p);
-                    }
-                }
-            }
-            catch (NullReferenceException e)
-            {
-                e.GetBaseException();
-                System.Console.Write("The list of Points is empty.");
-            }
 
-            // Swap pointsOnHull[0] with lowest y-coord
-            try
+            // Test for tiny/nonexistent hull
+            Stack<Point> hull = new Stack<Point>();
+            bool tinyHull = false;
+            if (dataSet == null || (dataSet.Count() <= 3) )
             {
+                tinyHull = true;
+            }
+            if (!tinyHull)
+            {
+                int N = dataSet.Count;
+                bool allPointsEqual = false;                
+                List<Point> points = new List<Point>(dataSet); // This may be redundant, if C# passes by value
+                int yMostIndex = getSouthernPoint(points);
+
+                // Swap pointsOnHull[0] with lowest y-coord            
                 Point swap;
                 swap = points[0];
                 points[0] = points[yMostIndex];
                 points[yMostIndex] = swap;
-            }
-            catch (NullReferenceException e)
-            {
-                System.Console.WriteLine(e.StackTrace);
-            }
-   
-            // Sort relative to y-most point
-            PolarAngleComparer pac = new PolarAngleComparer(points[0]);
-            points.Sort(pac);
 
-            // p0 is on the hull
-            hull.Push(points[0]);
+                // Sort relative to y-most point
+                PolarAngleComparer pac = new PolarAngleComparer(points[0]);
+                points.Sort(pac);
 
-            // find index k1 of first point not equal to points[0]
-            int k1;
-            for (k1 = 1; k1 < N; k1++)
-                if (!(points[0] == (points[k1]))) break;
-            if (k1 == N) allPointsEqual = true;        // all points equal
+                // p0 is on the hull
+                hull.Push(points[0]);
 
-            // find index k2 of first point not collinear with points[0] and points[k1]
-            int k2;
-            for (k2 = k1 + 1; k2 < N; k2++)
-                if (ccw(points[0], points[k1], points[k2]) != 0) break;
-            hull.Push(points[k2 - 1]);    // points[k2-1] is second extreme point
+                // find index k1 of first point not equal to points[0]
+                int k1;
+                for (k1 = 1; k1 < N; k1++)
+                    if (!(points[0] == (points[k1]))) break;
+                if (k1 == N) allPointsEqual = true;        // all points equal
 
-            // Debug info
-            System.Console.WriteLine("----Test Sort----");
-            foreach (Point p in points)
-            {
-                System.Console.WriteLine(p);
-            }
-            System.Console.WriteLine("----Test Sort----");
+                // find index k2 of first point not collinear with points[0] and points[k1]
+                int k2;
+                for (k2 = k1 + 1; k2 < N; k2++)
+                    if (ccw(points[0], points[k1], points[k2]) != 0) break;
+                hull.Push(points[k2 - 1]);    // points[k2-1] is second extreme point
 
-            if (!allPointsEqual)
-            {
-                for (int i = k2; i < N; i++)
+                if (!allPointsEqual)
                 {
-                    Point top = hull.Pop();
-                    while ( (ccw(hull.Peek(), top, points[i])) > 0 )
+                    for (int i = k2; i < N; i++)
                     {
-                        top = hull.Pop();
+                        Point top = hull.Pop();
+                        while ((ccw(hull.Peek(), top, points[i])) > 0)
+                        {
+                            top = hull.Pop();
+                        }
+                        hull.Push(top);
+                        hull.Push(points[i]);
                     }
-                    hull.Push(top);
-                    hull.Push(points[i]);
-                }
+                }                
+            }
+            else
+            {
+                hull = new Stack<Point>(dataSet);                
             }
             return hull.ToList();
         }
@@ -211,14 +176,35 @@ namespace Covert_Tapir
             get { return 0; }
         }
 
-        private bool isLeft(Point a, Point b, Point c)
-        {
-            return ((b.X - a.X) * (c.Y - a.Y) - (b.Y - a.Y) * (c.X - a.X)) > 0;
-        }
-
         private double ccw(Point a, Point b, Point point0)
         {
             return (b.X - a.X) * (point0.Y - a.Y) - (point0.X - a.X) * (b.Y - a.Y);
+        }
+
+        private int getSouthernPoint(List<Point> input)
+        {
+            int southernIndex = 0;
+            foreach (Point p in input)
+            {
+                if (p.Y < input[southernIndex].Y)
+                {
+                    southernIndex = input.IndexOf(p);
+                }
+            }
+            return southernIndex;
+        }
+
+        private int getWesternPoint(List<Point> input)
+        {
+            int westernIndex = 0;
+            foreach (Point p in input)
+            {
+                if (p.X < input[westernIndex].X)
+                {
+                    westernIndex = input.IndexOf(p);
+                }
+            }
+            return westernIndex;
         }
     }      
 
@@ -243,6 +229,7 @@ namespace Covert_Tapir
          /// <returns>a<b => value < 0; a==b => value == 0; a>b => value > 0</returns>
          public int Compare(Point a, Point b)
          {
+             // x>0 = left; x<0 = right, x=0=colinear
              return  (b.X - a.X) * (point0.Y - a.Y) - (point0.X - a.X) * (b.Y - a.Y);             
          }
      }

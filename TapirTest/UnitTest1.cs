@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Drawing;
+using System.Collections.Generic;
 
 namespace Covert_Tapir
 {
@@ -18,7 +19,8 @@ namespace Covert_Tapir
         [TestMethod]
         public void GrahamScanTest()
         {
-            Assert.IsNotNull(testHull.GrahamScan(null));
+            List<Point> testList = new List<Point>();
+            Assert.IsNotNull(testHull.GrahamScan(testList));
         }
 
         [TestMethod]

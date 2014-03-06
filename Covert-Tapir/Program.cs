@@ -17,7 +17,7 @@ namespace Covert_Tapir
         {   
             List<Point> dataSet = new List<Point>();
             Random rand = new Random();
-            int pointsInSet = rand.Next(50000, 1000000);
+            int pointsInSet = rand.Next(8000, 10000);
             var watch = Stopwatch.StartNew();
             for (int i = 0; i < pointsInSet; i++)
             {
@@ -33,15 +33,45 @@ namespace Covert_Tapir
             var watchJarvis = Stopwatch.StartNew();
             List<Point> testJarvis = testicle.JarvisMarch(dataSet);
             watchJarvis.Stop();
+            //System.Console.WriteLine("--Jarvis Hull--");
+            //foreach (Point p in testJarvis)
+            //{
+            //    System.Console.WriteLine(p.ToString());
+            //}
 
                        
             var grahamWatch = Stopwatch.StartNew();
             List<Point> testGraham = testicle.GrahamScan(dataSet);
             grahamWatch.Stop();
+            //System.Console.WriteLine("--Graham Hull--");
+            //System.Console.WriteLine(testicle.isGrahamConvex(testGraham));
+            //foreach (Point p in testGraham)
+            //{
+            //    System.Console.WriteLine(p.ToString());
+            //}
+
+            var bruteWatch = Stopwatch.StartNew();
+            List<Point> testBrute = testicle.bruteForce(dataSet);
+            bruteWatch.Stop();
+            //System.Console.WriteLine("--Brute Hull--");
+            //foreach (Point p in testBrute)
+            //{
+            //    System.Console.WriteLine(p.ToString());
+            //}
 
             System.Console.WriteLine(watch.ElapsedMilliseconds + "ms to run point generation of " + pointsInSet + " points");
             System.Console.WriteLine(watchJarvis.ElapsedMilliseconds + "ms to run Jarvis");
             System.Console.WriteLine(grahamWatch.ElapsedMilliseconds + "ms to run Graham");
+            System.Console.WriteLine(bruteWatch.ElapsedMilliseconds + "ms to run Brute");
+            //foreach (Point p in testJarvis.Except(testGraham).ToList())
+            //{
+            //    System.Console.WriteLine(p.ToString());
+            //}
+            //foreach (Point p in testBrute.Except(testGraham).ToList())
+            //{
+            //    System.Console.WriteLine(p.ToString());
+            //}
+
             System.Console.ReadLine();            
         }
 
@@ -176,6 +206,51 @@ namespace Covert_Tapir
             get { return 0; }
         }
 
+        public List<Point> bruteForce(List<Point> dataSet)
+        {
+            List<Point> pointsOnHull = new List<Point>();
+            bool tinyHull = false;
+            if (dataSet == null || (dataSet.Count() <= 3) )
+            {
+                tinyHull = true;
+            }
+            if (!tinyHull)
+            {
+                for (int i = 0; i < dataSet.Count(); i++)
+                {
+                    for (int j = i+1; j < dataSet.Count(); j++)
+                    {
+                        bool noPointsLeft = false;
+                        if (dataSet[i] != dataSet[j]) 
+                        {
+                            for (int k = 0; k < dataSet.Count(); k++)
+                            {
+                                if (dataSet[i] != dataSet[k] && dataSet[j] != dataSet[k])
+                                {
+                                    noPointsLeft = true;
+                                    //System.Console.WriteLine(ccw(dataSet[i], dataSet[j], dataSet[k]));
+                                    if (ccw(dataSet[i], dataSet[j], dataSet[k]) > 0)
+                                    {
+                                        noPointsLeft = false;
+                                        break;
+                                    }                                   
+                                }
+                            }
+                            if (noPointsLeft && !pointsOnHull.Contains(dataSet[i]))
+                            {
+                                pointsOnHull.Add(dataSet[i]);
+                            }
+                            if (noPointsLeft && !pointsOnHull.Contains(dataSet[j]))
+                            {
+                                pointsOnHull.Add(dataSet[j]);
+                            }
+                        }                        
+                    }
+                }
+            }
+            return pointsOnHull;
+        }
+
         private double ccw(Point a, Point b, Point point0)
         {
             return (b.X - a.X) * (point0.Y - a.Y) - (point0.X - a.X) * (b.Y - a.Y);
@@ -205,6 +280,27 @@ namespace Covert_Tapir
                 }
             }
             return westernIndex;
+        }
+
+        public bool isGrahamConvex(List<Point> hull) {
+            int N = hull.Count();
+            if (N <= 2) return true;
+
+            List<Point> points = new List<Point>();
+            int n = 0;
+            foreach (Point p in hull)
+            {
+                points.Add(p);
+            }
+
+            for (int i = 0; i < N; i++)
+            {
+                if (ccw(points[i], points[(i + 1) % N], points[(i + 2) % N]) <= 0)
+                {
+                    return false;
+                }
+            }
+            return true;
         }
     }      
 

@@ -21,6 +21,7 @@ namespace Covert_Tapir
         {
             List<Point> testList = new List<Point>();
             Assert.IsNotNull(testHull.GrahamScan(testList));
+            Assert.IsTrue(testHull.isGrahamConvex(testHull.GrahamScan(testList)));
         }
 
         [TestMethod]

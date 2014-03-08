@@ -17,7 +17,7 @@ namespace Covert_Tapir
         {   
             List<Point> dataSet = new List<Point>();
             Random rand = new Random();
-            int pointsInSet = rand.Next(8000, 10000);
+            int pointsInSet = rand.Next(1000, 5000);
             var watch = Stopwatch.StartNew();
             for (int i = 0; i < pointsInSet; i++)
             {
@@ -60,13 +60,13 @@ namespace Covert_Tapir
             //}
 
             System.Console.WriteLine(watch.ElapsedMilliseconds + "ms to run point generation of " + pointsInSet + " points");
-            System.Console.WriteLine(watchJarvis.ElapsedMilliseconds + "ms to run Jarvis");
-            System.Console.WriteLine(grahamWatch.ElapsedMilliseconds + "ms to run Graham");
-            System.Console.WriteLine(bruteWatch.ElapsedMilliseconds + "ms to run Brute");
-            //foreach (Point p in testJarvis.Except(testGraham).ToList())
-            //{
-            //    System.Console.WriteLine(p.ToString());
-            //}
+            System.Console.WriteLine(watchJarvis.ElapsedMilliseconds + "ms to run Jarvis; " + testJarvis.Count());
+            System.Console.WriteLine(grahamWatch.ElapsedMilliseconds + "ms to run Graham; " + testGraham.Count());
+            System.Console.WriteLine(bruteWatch.ElapsedMilliseconds + "ms to run Brute; " + testBrute.Count());
+            foreach (Point p in testJarvis.Except(testGraham).ToList())
+            {
+                System.Console.WriteLine(p.ToString());
+            }
             //foreach (Point p in testBrute.Except(testGraham).ToList())
             //{
             //    System.Console.WriteLine(p.ToString());

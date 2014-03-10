@@ -117,9 +117,10 @@ namespace Covert_Tapir
             if (!tinyHull)
             {
                 // Sort array by Y
-                List<Point> points = sortPointListByY(inputSet);
+                List<Point> yPoints = sortPointListByY(inputSet);
 
                 // Sort array again, by polar order
+                List<Point> points = polarSort(yPoints, yPoints[0]);
                 PolarAngleComparer pac = new PolarAngleComparer(points[0]);
                 points.Sort(pac);
 
@@ -409,6 +410,16 @@ namespace Covert_Tapir
                                     select p;
             return sortedByY.ToList();
         }
+
+        public List<Point> polarSort(List<Point> inputList, Point point0)
+        {
+            PolarAngleComparer pac = new PolarAngleComparer(point0);
+            var sortedPolarly = from p in inputList
+                                orderby (pac)
+                                select p;
+            return sortedPolarly.ToList<Point>();
+           
+        }
     }
 
     public class PolarAngleComparer : IComparer<Point>
@@ -433,6 +444,7 @@ namespace Covert_Tapir
              }
              int thingA = -((a.X - point0.X) / (a.Y - point0.Y));
              int thingB = -((b.X - point0.X) / (b.Y - point0.Y));
+             System.Console.WriteLine(thingA);
              return thingA - thingB;
          }
      }

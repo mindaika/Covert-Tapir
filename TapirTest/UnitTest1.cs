@@ -105,22 +105,27 @@ namespace Covert_Tapir
         {
             List<Point> listToSort = new List<Point>(); 
             Point A = new Point(90, 0);           
-            Point B = new Point(80, 0);
-            Point C = new Point(70, 0);
+            Point B = new Point(70, 0);
+            Point C = new Point(80, 0);
             Point D = new Point(0, -90);
             Point E = new Point(0, -100);
             Point origin = new Point(0, -100);
             PolarAngleComparer pac = new PolarAngleComparer(origin);
             listToSort.Add(origin);           
-            listToSort.Add(E);
-            listToSort.Add(B);
-            listToSort.Add(D);
-            listToSort.Add(C);
             listToSort.Add(A);
+            listToSort.Add(B);
+            listToSort.Add(C);
+            listToSort.Add(D);
+            listToSort.Add(E);
             List<Point> points = testHull.sortPointListByY(listToSort);
             //points.Sort(pac);
-            listToSort.Sort(1, listToSort.Count() - 1, pac);
-            foreach (Point p in points)
+            //listToSort.Sort(1, listToSort.Count() - 1, pac);
+            //PolarAngleComparer pac = new PolarAngleComparer(point0);
+            var sortedPolarly = from p in points
+                                orderby (pac)
+                                select p;
+            
+            foreach (Point p in sortedPolarly)
             {
                 System.Console.WriteLine(p);
             }

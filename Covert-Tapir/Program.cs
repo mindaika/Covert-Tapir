@@ -40,7 +40,7 @@ namespace Covert_Tapir
             grahamWatch.Stop();
 
             var bruteWatch = Stopwatch.StartNew();
-            List<Point> testBrute = testicle.bruteForce(dataSet);
+            //List<Point> testBrute = testicle.bruteForce(dataSet);
             bruteWatch.Stop();
 
             var quickWatch = Stopwatch.StartNew();
@@ -50,7 +50,7 @@ namespace Covert_Tapir
             System.Console.WriteLine(watch.ElapsedMilliseconds + "ms to run point generation of " + dataSet.Count() + " points");
             System.Console.WriteLine(watchJarvis.ElapsedMilliseconds + "ms to run Jarvis; " + testJarvis.Count() + " points in hull.");
             System.Console.WriteLine(grahamWatch.ElapsedMilliseconds + "ms to run Graham; " + testGraham.Count() + " points in hull.");
-            System.Console.WriteLine(bruteWatch.ElapsedMilliseconds + "ms to run Brute; " + testBrute.Count() + " points in hull.");
+            //System.Console.WriteLine(bruteWatch.ElapsedMilliseconds + "ms to run Brute; " + testBrute.Count() + " points in hull.");
             System.Console.WriteLine(quickWatch.ElapsedMilliseconds + "ms to run Quick; " + testQuick.Count() + " points in hull.");
 
             //foreach (Point p in testJarvis.Except(testGraham).ToList())
@@ -120,9 +120,12 @@ namespace Covert_Tapir
                 List<Point> yPoints = sortPointListByY(inputSet);
 
                 // Sort array again, by polar order
-                List<Point> points = polarSort(yPoints, yPoints[0]);
-                PolarAngleComparer pac = new PolarAngleComparer(points[0]);
-                points.Sort(pac);
+                //List<Point> points = polarSort(yPoints, yPoints[0]);
+                var sortedPoints = (yPoints.Skip(1)).OrderByDescending(p => p, new PolarAngleComparer(yPoints[0]));
+                List<Point> points = sortedPoints.ToList();
+                points.Insert(0, yPoints[0]);
+
+                //points.Sort(new PolarAngleComparer(points[0]));
 
                 // Setup
                 int N = points.Count();
@@ -147,7 +150,7 @@ namespace Covert_Tapir
                     for (int i = k2; i < N; i++)
                     {
                         Point top = hull.Pop();
-                        while ((ccw(hull.Peek(), top, points[i])) <= 0)
+                        while ((ccw(hull.Peek(), top, points[i])) > 0) // This is essentially the opposite of Sedgewick's implementation
                         {
                             top = hull.Pop();
                         }
@@ -422,7 +425,7 @@ namespace Covert_Tapir
         }
     }
 
-    public class PolarAngleComparer : IComparer<Point>
+    public class PolarAngleComparer : Comparer<Point>
      {
         private Point point0;
         public PolarAngleComparer(Point point0)
@@ -430,24 +433,40 @@ namespace Covert_Tapir
             this.point0 = point0;
         }         
 
-         public int Compare(Point a, Point b)
-         {             
-             if (a.Y == point0.Y || b.Y == point0.Y)
-             {
-                 if (a.X > b.X) {
-                     return 1;
-                 } else if (a.X < b.X) {
-                     return -1;
-                 } else {
-                     return 0;
-                 }                 
-             }
-             int thingA = -((a.X - point0.X) / (a.Y - point0.Y));
-             int thingB = -((b.X - point0.X) / (b.Y - point0.Y));
-             System.Console.WriteLine(thingA);
-             return thingA - thingB;
-         }
+        public override int Compare(Point a, Point b)
+        {             
+            if (a.Y == point0.Y || b.Y == point0.Y)
+            {
+                if (a.X > b.X)
+                {
+                    return 1;
+                }
+                else if (a.X < b.X)
+                {
+                    return -1;
+                }
+                else
+                {
+                    return 0;
+                }                 
+            } else {            
+                double thingA = -((double)(a.X - point0.X) / (double)(a.Y - point0.Y));
+                double thingB = -((double)(b.X - point0.X) / (double)(b.Y - point0.Y));
+                //System.Console.WriteLine(-((a.X - point0.X) / (a.Y - point0.Y)));
+                //System.Console.WriteLine("Value: " + (thingA - thingB) );
+                if (thingA < thingB)
+                {
+                    return 1;
+                }
+                else if (thingA > thingB)
+                {
+                    return -1;
+                }
+                else
+                {
+                    return 0;
+                }
+            }
+        }
      }
-
-
 }

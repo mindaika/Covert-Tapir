@@ -32,7 +32,7 @@ namespace Covert_Tapir
                 Point randomPoint = new Point(_xval, _yval);
                 testSet.Add(randomPoint);
             }
-            //validList = new List<Point>(testHull.GrahamScan(testSet));
+            validList = new List<Point>(testHull.GrahamScan(testSet));
         }
 
         [TestMethod]
@@ -104,12 +104,12 @@ namespace Covert_Tapir
         public void polarSortTest()
         {
             List<Point> listToSort = new List<Point>(); 
-            Point A = new Point(90, 0);           
-            Point B = new Point(70, 0);
-            Point C = new Point(80, 0);
-            Point D = new Point(0, -90);
-            Point E = new Point(0, -100);
-            Point origin = new Point(0, -100);
+            Point A = new Point(10, -10);           
+            Point B = new Point(20, -10);
+            Point C = new Point(-20, -10);
+            Point D = new Point(-10, -10);
+            Point E = new Point(0, -10);
+            Point origin = new Point(0, -10);
             PolarAngleComparer pac = new PolarAngleComparer(origin);
             listToSort.Add(origin);           
             listToSort.Add(A);
@@ -121,15 +121,17 @@ namespace Covert_Tapir
             //points.Sort(pac);
             //listToSort.Sort(1, listToSort.Count() - 1, pac);
             //PolarAngleComparer pac = new PolarAngleComparer(point0);
-            var sortedPolarly = from p in points
-                                orderby (pac)
-                                select p;
+            //var sortedPolarly = from p in listToSort
+            //                    orderby (p1 => p1)
+            //                    select p;
+            var sortedPolarly = (points.Skip(1)).OrderByDescending(p => p, pac);
+            List<Point> plist = sortedPolarly.ToList();
+            plist.Insert(0, points[0]);
             
-            foreach (Point p in sortedPolarly)
+            foreach (Point p in plist)
             {
                 System.Console.WriteLine(p);
             }
-            
         }
     }
 }

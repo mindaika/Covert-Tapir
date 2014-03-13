@@ -14,91 +14,56 @@ namespace Covert_Tapir
     public class ConvexHull
     {             
         static void Main(string[] args)
-        {   
-            List<Point> dataSet = new List<Point>();
-            Random rand = new Random();
-            int pointsInSet = rand.Next(10, 20);
-            var watch = Stopwatch.StartNew();
-            for (int i = 0; i < pointsInSet; i++)
-            {
-                int _xval = rand.Next(-100, 120);
-                int _yval = rand.Next(-100, 120);
-                Point randomPoint = new Point(_xval, _yval);
-                dataSet.Add(randomPoint);
-            }
-            watch.Stop();
-            
+        {
             // Primary test section
             ConvexHull testicle = new ConvexHull();
 
-            var watchJarvis = Stopwatch.StartNew();
-            List<Point> testJarvis = testicle.JarvisMarch(dataSet);
-            watchJarvis.Stop();
-                       
-            var grahamWatch = Stopwatch.StartNew();
-            List<Point> testGraham = testicle.GrahamScan(dataSet);
-            grahamWatch.Stop();
-
-            var bruteWatch = Stopwatch.StartNew();
-            //List<Point> testBrute = testicle.bruteForce(dataSet);
-            bruteWatch.Stop();
-
-            var quickWatch = Stopwatch.StartNew();
-            List<Point> testQuick = testicle.QuickHull(dataSet);
-            quickWatch.Stop();
-         
-            System.Console.WriteLine(watch.ElapsedMilliseconds + "ms to run point generation of " + dataSet.Count() + " points");
-            System.Console.WriteLine(watchJarvis.ElapsedMilliseconds + "ms to run Jarvis; " + testJarvis.Count() + " points in hull.");
-            System.Console.WriteLine(grahamWatch.ElapsedMilliseconds + "ms to run Graham; " + testGraham.Count() + " points in hull.");
-            //System.Console.WriteLine(bruteWatch.ElapsedMilliseconds + "ms to run Brute; " + testBrute.Count() + " points in hull.");
-            System.Console.WriteLine(quickWatch.ElapsedMilliseconds + "ms to run Quick; " + testQuick.Count() + " points in hull.");
-
-            //foreach (Point p in testJarvis.Except(testGraham).ToList())
-            //{
-            //    System.Console.WriteLine(p.ToString());
-            //}
-            //foreach (Point p in testBrute.Except(testGraham).ToList())
-            //{
-            //    System.Console.WriteLine(p.ToString());
-            //}
-
+            for (int i = 0; i < 10; i++)
+            {
+                testicle.testProcedure();
+                System.Console.WriteLine("");
+            }
             System.Console.ReadLine();            
         }
 
-        public List<Point> JarvisMarch(List<Point> dataSet)
+        public List<Point> JarvisMarch(List<Point> inputSet)
         {
             // Setup
             List<Point> pointsOnHull = new List<Point>();
-            bool tinyHull = false;
-            if (dataSet == null || (dataSet.Count() <= 3) )
+            if (inputSet == null || (inputSet.Count() <= 3) )
             {
-                tinyHull = true;
+                return inputSet;
             }
-            if (!tinyHull)
-            {
-                // Find leftmost point
-                int leftmostIndex = getWesternPoint(dataSet);
 
-                // Perform Jarvis' march                
-                int i = 0;
-                Point endpoint;
-                Point pointOnHull = dataSet[leftmostIndex];
-                do
+            //
+            int k1;
+            for (k1 = 1; k1 < inputSet.Count(); k1++)
+                if (!(inputSet[0] == (inputSet[k1]))) break;
+            if (k1 == inputSet.Count()) return inputSet; // all points equal
+
+            // Find leftmost point
+            int leftmostIndex = getWesternPoint(inputSet);
+
+            // Perform Jarvis' march                
+            int i = 0;
+            Point endpoint;
+            Point pointOnHull = inputSet[leftmostIndex];
+            do
+            {
+                pointsOnHull.Add(pointOnHull);
+                endpoint = inputSet[0];
+                for (int j = 1; j < inputSet.Count; j++)
                 {
-                    pointsOnHull.Add(pointOnHull);
-                    endpoint = dataSet[0];
-                    for (int j = 1; j < dataSet.Count; j++)
+                    if (endpoint.Equals(pointOnHull) ||
+                        // This ensures the next move is a turn, but fails to capture collinear points
+                        ccw(pointsOnHull[i], endpoint, inputSet[j]) > 0)
                     {
-                        if (endpoint.Equals(pointOnHull) ||
-                            ccw(pointsOnHull[i], endpoint, dataSet[j]) > 0)
-                        {
-                            endpoint = dataSet[j];
-                        }
+                        endpoint = inputSet[j];
                     }
-                    i++;
-                    pointOnHull = endpoint;
-                } while (!endpoint.Equals(pointsOnHull[0]));            
-            }
+                }
+                i++;
+                pointOnHull = endpoint;
+            } while (!endpoint.Equals(pointsOnHull[0]));            
             return pointsOnHull;
         }
 
@@ -111,62 +76,55 @@ namespace Covert_Tapir
             // Test for tiny/nonexistent hull            
             if (inputSet == null || (inputSet.Count() <= 3))
             {
-                tinyHull = true;
+                return inputSet;
             }
 
-            if (!tinyHull)
+            // Sort array by Y
+            List<Point> yPoints = sortPointListByY(inputSet);
+
+            // Sort array again, by polar order
+            var sortedPoints = (yPoints.Skip(1)).OrderByDescending(p => p, new PolarAngleComparer(yPoints[0])).ThenBy(p => p.X);
+            List<Point> points = sortedPoints.ToList();
+            points.Insert(0, yPoints[0]);
+
+            // Setup
+            int N = points.Count();
+
+            // p0 is on the hull
+            hull.Push(points[0]);
+
+            // find index k1 of first point not equal to points[0]
+            int k1;
+            for (k1 = 1; k1 < N; k1++)
+                if (!(points[0] == (points[k1]))) break;
+            if (k1 == N) return points; // all points equal
+
+            // find index k2 of first point not collinear with points[0] and points[k1]
+            int k2;
+            for (k2 = k1 + 1; k2 < N; k2++)
+                if (ccw(points[0], points[k1], points[k2]) != 0) break;
+            hull.Push(points[k2 - 1]);    // points[k2-1] is second extreme point
+
+            
+            for (int i = k2; i < N; i++)
             {
-                // Sort array by Y
-                List<Point> yPoints = sortPointListByY(inputSet);
-
-                // Sort array again, by polar order
-                //List<Point> points = polarSort(yPoints, yPoints[0]);
-                var sortedPoints = (yPoints.Skip(1)).OrderByDescending(p => p, new PolarAngleComparer(yPoints[0]));
-                List<Point> points = sortedPoints.ToList();
-                points.Insert(0, yPoints[0]);
-
-                //points.Sort(new PolarAngleComparer(points[0]));
-
-                // Setup
-                int N = points.Count();
-
-                // p0 is on the hull
-                hull.Push(points[0]);
-
-                // find index k1 of first point not equal to points[0]
-                int k1;
-                for (k1 = 1; k1 < N; k1++)
-                    if (!(points[0] == (points[k1]))) break;
-                if (k1 == N) return points; // all points equal
-
-                // find index k2 of first point not collinear with points[0] and points[k1]
-                int k2;
-                for (k2 = k1 + 1; k2 < N; k2++)
-                    if (ccw(points[0], points[k1], points[k2]) != 0) break;
-                hull.Push(points[k2 - 1]);    // points[k2-1] is second extreme point
-
-                try
+                Point top = hull.Pop();
+                while (ccw(hull.Peek(), top, points[i]) <= 0) // This is essentially the opposite of Sedgewick's implementation
                 {
-                    for (int i = k2; i < N; i++)
-                    {
-                        Point top = hull.Pop();
-                        while ((ccw(hull.Peek(), top, points[i])) > 0) // This is essentially the opposite of Sedgewick's implementation
-                        {
-                            top = hull.Pop();
-                        }
-                        hull.Push(top);
-                        hull.Push(points[i]);
-                    }
+                    top = hull.Pop();
                 }
-                catch (InvalidOperationException ex)
-                {
-                    System.Console.WriteLine(ex.ToString());
-                }
+                hull.Push(top);
+                hull.Push(points[i]);
             }
-            return hull.ToList();
+
+            if (isGrahamConvex(hull.Reverse().ToList()))
+            {
+                System.Console.WriteLine("Hull is confirmed as convex.");
+            }
+            return hull.Reverse().ToList();
         }
 
-        public List<Point> QuickHull(List<Point> dataSet)
+        public List<Point> QuickHull(List<Point> inputSet)
         {
             //Setup
             List<Point> pointsOnHull = new List<Point>();
@@ -174,20 +132,20 @@ namespace Covert_Tapir
             List<Point> rightSet = new List<Point>();
             
             
-            if (dataSet.Count() != 0) {
-                int leftX = getWesternPoint(dataSet);
-                int rightX = getEasternPoint(dataSet);
-                Point A = dataSet[leftX];
-                Point B = dataSet[rightX];
-                pointsOnHull.Add(dataSet[leftX]);
-                pointsOnHull.Add(dataSet[rightX]);
-                dataSet.Remove(dataSet[rightX]);
-                dataSet.Remove(dataSet[leftX]);
+            if (inputSet.Count() != 0) {
+                int leftX = getWesternPoint(inputSet);
+                int rightX = getEasternPoint(inputSet);
+                Point A = inputSet[leftX];
+                Point B = inputSet[rightX];
+                pointsOnHull.Add(inputSet[leftX]);
+                pointsOnHull.Add(inputSet[rightX]);
+                //inputSet.Remove(inputSet[rightX]);
+                //inputSet.Remove(inputSet[leftX]);
                 
                 // Divide the data into points left of and right of the line
-                foreach (Point i in dataSet)
+                foreach (Point i in inputSet)
                 {
-                    if (ccw(dataSet[leftX], dataSet[rightX], i) < 0)
+                    if (ccw(inputSet[leftX], inputSet[rightX], i) < 0)
                     {
                         leftSet.Add(i);
                     }
@@ -228,43 +186,42 @@ namespace Covert_Tapir
             get { return 0; }
         }
 
-        public List<Point> bruteForce(List<Point> dataSet)
+        public List<Point> bruteForce(List<Point> inputSet)
         {
             List<Point> pointsOnHull = new List<Point>();
             bool tinyHull = false;
-            if (dataSet == null || (dataSet.Count() <= 3) )
+            if (inputSet == null || (inputSet.Count() <= 3) )
             {
                 tinyHull = true;
             }
             if (!tinyHull)
             {
-                for (int i = 0; i < dataSet.Count(); i++)
+                for (int i = 0; i < inputSet.Count(); i++)
                 {
-                    for (int j = i+1; j < dataSet.Count(); j++)
+                    for (int j = 0; j < inputSet.Count(); j++)
                     {
                         bool noPointsLeft = false;
-                        if (dataSet[i] != dataSet[j]) 
+                        if (inputSet[i] != inputSet[j]) 
                         {
-                            for (int k = 0; k < dataSet.Count(); k++)
+                            for (int k = 0; k < inputSet.Count(); k++)
                             {
-                                if (dataSet[i] != dataSet[k] && dataSet[j] != dataSet[k])
+                                if (inputSet[i] != inputSet[k] && inputSet[j] != inputSet[k])
                                 {
                                     noPointsLeft = true;
-                                    //System.Console.WriteLine(ccw(dataSet[i], dataSet[j], dataSet[k]));
-                                    if (ccw(dataSet[i], dataSet[j], dataSet[k]) > 0)
+                                    if (ccw(inputSet[i], inputSet[j], inputSet[k]) > 0)
                                     {
                                         noPointsLeft = false;
                                         break;
                                     }                                   
                                 }
                             }
-                            if (noPointsLeft && !pointsOnHull.Contains(dataSet[i]))
+                            if (noPointsLeft && !pointsOnHull.Contains(inputSet[i]))
                             {
-                                pointsOnHull.Add(dataSet[i]);
+                                pointsOnHull.Add(inputSet[i]);
                             }
-                            if (noPointsLeft && !pointsOnHull.Contains(dataSet[j]))
+                            if (noPointsLeft && !pointsOnHull.Contains(inputSet[j]))
                             {
-                                pointsOnHull.Add(dataSet[j]);
+                                pointsOnHull.Add(inputSet[j]);
                             }
                         }                        
                     }
@@ -277,10 +234,10 @@ namespace Covert_Tapir
         {
             int orientation = (b.X - a.X) * (point0.Y - a.Y) - (point0.X - a.X) * (b.Y - a.Y);
             if (orientation > 0)
-                return -1; // point0 is to the left of the line (aX,aY)(bX,bY)
-            if (orientation < 0)
-                return 1; // point0 is to the right of the line (aX,aY)(bX,bY)
-            return 0; // point0 is colinear with the line (aX,aY)(bX,bY)
+                return 1; // point0 is to the left of the line (aX,aY)(bX,bY)
+            else if (orientation < 0)
+                return -1; // point0 is to the right of the line (aX,aY)(bX,bY)
+            else return 0; // point0 is colinear with the line (aX,aY)(bX,bY)
         }
 
         private int getSouthernPoint(List<Point> input)
@@ -334,7 +291,6 @@ namespace Covert_Tapir
             {
                 points.Add(p);
             }
-            System.Console.WriteLine("Test:" + points.Except(hull));
 
             for (int i = 0; i < N; i++)
             {
@@ -408,10 +364,8 @@ namespace Covert_Tapir
         public List<Point> sortPointListByY(List<Point> inputList)
         {
             //Point point;
-            var sortedByY = from p in inputList
-                                    orderby p.Y
-                                    select p;
-            return sortedByY.ToList();
+            var sorted = inputList.OrderBy(p => p.Y).ThenBy(p => p.X);       
+            return sorted.ToList();
         }
 
         public List<Point> polarSort(List<Point> inputList, Point point0)
@@ -420,8 +374,54 @@ namespace Covert_Tapir
             var sortedPolarly = from p in inputList
                                 orderby (pac)
                                 select p;
-            return sortedPolarly.ToList<Point>();
-           
+            return sortedPolarly.ToList<Point>();           
+        }
+
+        private void testProcedure()
+        {
+            List<Point> rawData = new List<Point>();
+            Random rand = new Random();
+            int pointsInSet = rand.Next(1, 10000);
+            var watch = Stopwatch.StartNew();
+            for (int i = 0; i < pointsInSet; i++)
+            {
+                int _xval = rand.Next(-10000, 10000);
+                int _yval = rand.Next(-10000, 10000);
+                Point randomPoint = new Point(_xval, _yval);
+                if (!rawData.Contains(randomPoint))
+                    rawData.Add(randomPoint);
+            }
+            watch.Stop();
+            // There. Now you CAN'T ruin it.
+            List<Point> dataSet = new List<Point>(rawData);            
+
+            var watchJarvis = Stopwatch.StartNew();
+            List<Point> testJarvis = this.JarvisMarch(dataSet);
+            watchJarvis.Stop();
+
+            var grahamWatch = Stopwatch.StartNew();
+            List<Point> testGraham = this.GrahamScan(dataSet);
+            grahamWatch.Stop();
+
+            var bruteWatch = Stopwatch.StartNew();
+            List<Point> testBrute = this.bruteForce(dataSet);
+            bruteWatch.Stop();
+
+            var quickWatch = Stopwatch.StartNew();
+            List<Point> testQuick = this.QuickHull(dataSet);
+            quickWatch.Stop();
+
+            System.Console.WriteLine(watch.ElapsedMilliseconds + "ms to run point generation of " + rawData.Count() + " points");
+            System.Console.WriteLine(watchJarvis.ElapsedMilliseconds + "ms to run Jarvis; " + testJarvis.Count() + " points in hull.");
+            System.Console.WriteLine(grahamWatch.ElapsedMilliseconds + "ms to run Graham; " + testGraham.Count() + " points in hull.");
+            System.Console.WriteLine(bruteWatch.ElapsedMilliseconds + "ms to run Brute; " + testBrute.Count() + " points in hull.");
+            System.Console.WriteLine(quickWatch.ElapsedMilliseconds + "ms to run Quick; " + testQuick.Count() + " points in hull.");
+
+            foreach (Point p in testJarvis.Except(testGraham).ToList())
+            {
+                System.Console.WriteLine(p.ToString());
+            }
+
         }
     }
 
